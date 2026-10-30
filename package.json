@@ -1,11 +1,13 @@
 {
-  "name": "pockettrack-multiplayer",
+  "name": "pockettrack-expense-tracker",
   "version": "2.0.0",
   "description": "Multi-user personal expense tracker with SQL database",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node --test",
+    "check": "node --check server.js && node --check lib/validation.js"
   },
   "engines": {
     "node": ">=18"
