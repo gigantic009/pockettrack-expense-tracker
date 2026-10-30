@@ -10,7 +10,7 @@
     "check": "node --check server.js && node --check lib/validation.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
