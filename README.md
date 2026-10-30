@@ -45,7 +45,7 @@ The server verifies the session cookie and derives the user ID from the verified
 
 ### Requirements
 
-- Node.js 18 or newer
+- Node.js 20 or newer
 - npm
 - Git (optional, for cloning the repository)
 
@@ -92,6 +92,15 @@ The server verifies the session cookie and derives the user ID from the verified
    ```
 
 6. Open [http://localhost:3000](http://localhost:3000).
+
+Run the automated validation tests and syntax checks:
+
+```bash
+npm test
+npm run check
+```
+
+The test suite uses Node.js's built-in test runner and covers date, amount, description, and transaction-type validation. It does not replace full API integration or browser end-to-end tests.
 
 For development with Node's watch mode:
 
