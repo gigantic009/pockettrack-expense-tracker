@@ -62,43 +62,12 @@ const publicUser = u => ({
   email: u.email
 });
 
-// Indian Standard Time date helper
-function todayInIndia() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kolkata",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).formatToParts(new Date());
-
-  const values = Object.fromEntries(
-    parts.map(part => [part.type, part.value])
-  );
-
-  return `${values.year}-${values.month}-${values.day}`;
-}
-
-// Validate real dates and reject future dates
-function isValidTransactionDate(value) {
-  const date = String(value || "");
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return false;
-  }
-
-  const [year, month, day] = date.split("-").map(Number);
-
-  const parsed = new Date(
-    Date.UTC(year, month - 1, day)
-  );
-
-  const isRealDate =
-    parsed.getUTCFullYear() === year &&
-    parsed.getUTCMonth() === month - 1 &&
-    parsed.getUTCDate() === day;
-
-  return isRealDate && date <= todayInIndia();
-}
+const {
+  isValidTransactionDate,
+  isValidAmount,
+  isValidDescription,
+  isValidTransactionType
+} = require("./lib/validation");
 
 // Authentication middleware
 function auth(req, res, next) {
@@ -346,23 +315,19 @@ app.post("/api/transactions", auth, (req, res) => {
   const cleanCategory = String(category || "").trim();
   const value = Number(amount);
 
-  if (!cleanDescription || cleanDescription.length > 100) {
+  if (!isValidDescription(cleanDescription)) {
     return res.status(400).json({
       error: "Description is required (maximum 100 characters)."
     });
   }
 
-  if (
-    !Number.isFinite(value) ||
-    value <= 0 ||
-    value > 1000000000
-  ) {
+  if (!isValidAmount(value)) {
     return res.status(400).json({
       error: "Enter a valid positive amount."
     });
   }
 
-  if (!["income", "expense"].includes(type)) {
+  if (!isValidTransactionType(type)) {
     return res.status(400).json({
       error: "Invalid transaction type."
     });
@@ -435,12 +400,9 @@ app.put("/api/transactions/:id", auth, (req, res) => {
 
   if (
     !Number.isInteger(id) ||
-    !cleanDescription ||
-    cleanDescription.length > 100 ||
-    !Number.isFinite(value) ||
-    value <= 0 ||
-    value > 1000000000 ||
-    !["income", "expense"].includes(type) ||
+    !isValidDescription(cleanDescription) ||
+    !isValidAmount(value) ||
+    !isValidTransactionType(type) ||
     !isValidTransactionDate(date)
   ) {
     return res.status(400).json({
