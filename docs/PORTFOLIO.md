@@ -62,6 +62,10 @@ These are baseline safeguards, not a complete security audit. The current code d
 
 Only include these bullets if you can explain the implementation yourself. Adjust wording to match the work you personally completed.
 
+## Automated validation tests
+
+The repository includes a Node.js built-in test suite for India-time date validation, impossible dates and leap years, future-date rejection, positive amount bounds, description length, and allowed transaction types. Run it with `npm test`; run syntax checks with `npm run check`. These tests cover shared validation helpers, not the entire API or browser UI.
+
 ## Interview explanation (about 60 seconds)
 
 "PocketTrack is a personal expense tracker I built using vanilla JavaScript on the frontend and Node.js with Express on the backend. It supports multiple user accounts. Users can add, edit, delete, search, and filter income and expense transactions. I used SQLite with better-sqlite3 to persist users, categories, and transactions. For authentication, passwords are hashed with bcryptjs, and a signed JWT is stored in an HttpOnly cookie. One important design decision was enforcing ownership on the server: transaction and category queries are scoped to the authenticated user's ID rather than trusting an ID sent by the browser. The dashboard shows an all-time balance and selected-month cash-flow summaries. I also added validation for transaction amounts and dates."
