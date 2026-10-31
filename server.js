@@ -211,6 +211,29 @@ function seedCategories(userId) {
 }
 
 // Create login session
+
+// Calculate the user's available balance. An optional transaction ID is excluded
+// when validating an edit, so the transaction's old value is not counted.
+function getAvailableBalance(userId, excludedTransactionId = null) {
+  const row = excludedTransactionId === null
+    ? db.prepare(`
+        SELECT COALESCE(SUM(
+          CASE WHEN type = 'income' THEN amount ELSE -amount END
+        ), 0) AS balance
+        FROM transactions
+        WHERE user_id = ?
+      `).get(userId)
+    : db.prepare(`
+        SELECT COALESCE(SUM(
+          CASE WHEN type = 'income' THEN amount ELSE -amount END
+        ), 0) AS balance
+        FROM transactions
+        WHERE user_id = ? AND id != ?
+      `).get(userId, excludedTransactionId);
+
+  return row.balance;
+}
+
 function issueSession(user, res) {
   const token = jwt.sign(
     { userId: user.id },
@@ -425,6 +448,12 @@ app.post("/api/transactions", auth, (req, res) => {
     });
   }
 
+  if (type === "expense" && value > getAvailableBalance(req.user.id)) {
+    return res.status(400).json({
+      error: "Insufficient balance. You cannot spend more than your available balance."
+    });
+  }
+
   const result = db.prepare(`
     INSERT INTO transactions(
       user_id,
@@ -493,6 +522,12 @@ app.put("/api/transactions/:id", auth, (req, res) => {
   if (!allowed) {
     return res.status(400).json({
       error: "Choose a category belonging to your account."
+    });
+  }
+
+  if (type === "expense" && value > getAvailableBalance(req.user.id, id)) {
+    return res.status(400).json({
+      error: "Insufficient balance. You cannot spend more than your available balance."
     });
   }
 
