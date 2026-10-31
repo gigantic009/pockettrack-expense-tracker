@@ -22,9 +22,10 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
 
 // Database setup
 const dataDir = path.join(__dirname, "data");
-fs.mkdirSync(dataDir, { recursive: true });
+const databasePath = process.env.POCKETTRACK_DB_PATH || path.join(dataDir, "pockettrack.sqlite");
+fs.mkdirSync(path.dirname(databasePath), { recursive: true });
 
-const db = new Database(path.join(dataDir, "pockettrack.sqlite"));
+const db = new Database(databasePath);
 db.pragma("foreign_keys = ON");
 db.pragma("journal_mode = WAL");
 
@@ -532,9 +533,13 @@ app.get("*", (req, res) => {
   );
 });
 
-// START SERVER
-app.listen(PORT, () => {
-  console.log(
-    `PocketTrack running at http://localhost:${PORT}`
-  );
-});
+// START SERVER when run directly. Exporting the app allows isolated API tests.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(
+      `PocketTrack running at http://localhost:${PORT}`
+    );
+  });
+}
+
+module.exports = { app, db };
