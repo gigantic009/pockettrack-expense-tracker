@@ -75,8 +75,8 @@ test("PocketTrack API integration", async t => {
     assert.equal(stylesheet.status, 200);
     assert.match(stylesheet.headers.get("content-type") || "", /css/i);
     const cssText = await stylesheet.text();
-    assert.match(cssText, /\.fill\\.width-100/);
-    assert.match(cssText, /\.bar\\.height-100/);
+    assert.match(cssText, /\.fill\.width-100/);
+    assert.match(cssText, /\.bar\.height-100/);
   });
 
   const today = todayInIndia();
