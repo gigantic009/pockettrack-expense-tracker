@@ -53,6 +53,23 @@ test("PocketTrack API integration", async t => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
+  await t.test("Content Security Policy is active and frontend assets are external", async () => {
+    const page = await request("/");
+    assert.equal(page.status, 200);
+    const policy = page.headers.get("content-security-policy") || "";
+    assert.match(policy, /script-src 'self'/);
+    assert.match(policy, /object-src 'none'/);
+    assert.match(policy, /frame-ancestors 'none'/);
+    assert.doesNotMatch(policy, /script-src[^;]*unsafe-inline/);
+
+    const script = await request("/app.js");
+    assert.equal(script.status, 200);
+    assert.match(script.headers.get("content-type") || "", /javascript/i);
+    const stylesheet = await request("/styles.css");
+    assert.equal(stylesheet.status, 200);
+    assert.match(stylesheet.headers.get("content-type") || "", /css/i);
+  });
+
   const today = todayInIndia();
   const month = today.slice(0, 7);
   let userACookie;
