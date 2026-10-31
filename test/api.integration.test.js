@@ -5,11 +5,13 @@ const os = require("node:os");
 const path = require("node:path");
 
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "pockettrack-api-"));
-process.env.JWT_SECRET = "integration-test-secret-that-is-at-least-32-characters";
+const TEST_JWT_SECRET = "integration-test-secret-that-is-at-least-32-characters";
+process.env.JWT_SECRET = TEST_JWT_SECRET;
 process.env.POCKETTRACK_DB_PATH = path.join(tempDir, "integration.sqlite");
 
 const { app, db } = require("../server");
 const { todayInIndia } = require("../lib/validation");
+const jwt = require("jsonwebtoken");
 
 let server;
 let baseUrl;
@@ -136,6 +138,25 @@ test("PocketTrack API integration", async t => {
     assert.equal(valid.status, 200);
     assert.equal((await valid.json()).user.email, "usera@example.com");
     userACookie = sessionCookie(valid);
+  });
+
+  await t.test("session verification rejects tokens without the expected issuer and audience", async () => {
+    const missingClaims = jwt.sign({ userId: 1 }, TEST_JWT_SECRET, { expiresIn: "7d" });
+    const wrongAudience = jwt.sign(
+      { userId: 1 },
+      TEST_JWT_SECRET,
+      { expiresIn: "7d", issuer: "pockettrack", audience: "untrusted-client" }
+    );
+
+    const missingClaimsResponse = await request("/api/auth/me", {
+      cookie: `pt_session=${missingClaims}`
+    });
+    assert.equal(missingClaimsResponse.status, 401);
+
+    const wrongAudienceResponse = await request("/api/auth/me", {
+      cookie: `pt_session=${wrongAudience}`
+    });
+    assert.equal(wrongAudienceResponse.status, 401);
   });
 
   await t.test("authenticated user can access their profile", async () => {
