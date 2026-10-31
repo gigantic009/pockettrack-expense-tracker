@@ -100,7 +100,7 @@ npm test
 npm run check
 ```
 
-The Node.js built-in test suite covers shared input-validation helpers and API integration flows, including registration, login, session handling, categories, transaction CRUD, monthly summaries, and cross-account data isolation. The API integration tests use a temporary SQLite database so they do not modify the developer's local financial data. These tests do not replace browser-based end-to-end testing or an independent security audit.
+The Node.js built-in test suite covers shared input-validation helpers, API integration flows, and database backup behavior, including backup verification, seven-file retention, missing-database handling, and corrupt-database failure handling. The API integration tests use a temporary SQLite database so they do not modify the developer's local financial data. These tests do not replace browser-based end-to-end testing or an independent security audit.
 
 For development with Node's watch mode:
 
