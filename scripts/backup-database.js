@@ -8,7 +8,7 @@ const projectDir = path.join(__dirname, "..");
 const databasePath = process.env.POCKETTRACK_DB_PATH
   ? path.resolve(process.env.POCKETTRACK_DB_PATH)
   : path.join(projectDir, "data", "pockettrack.sqlite");
-const backupDir = path.join(projectDir, "backups");
+const backupDir = process.env.POCKETTRACK_BACKUP_DIR\n  ? path.resolve(process.env.POCKETTRACK_BACKUP_DIR)\n  : path.join(projectDir, "backups");
 const RETENTION_COUNT = 7;
 
 async function main() {
