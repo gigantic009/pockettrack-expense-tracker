@@ -9,7 +9,7 @@ PocketTrack currently runs as a local Node.js + Express application using SQLite
 - [ ] Set a fresh, private production `JWT_SECRET` in the host's secret/environment settings. Never commit it.
 - [ ] Set `NODE_ENV=production` so the session cookie's Secure flag is enabled.
 - [ ] Confirm HTTPS is enabled and the app is served only over HTTPS.
-- [ ] Configure automated database backups and test restoring one.
+- [ ] Schedule `npm run backup` on the host and verify it succeeds; the script retains the latest seven timestamped local backups.\n- [ ] Copy backups to separate, secure storage (off-site or a separate storage service); local backups alone do not protect against disk loss.\n- [ ] Test restoring a backup into a separate database before any live recovery.
 - [ ] Decide how schema changes and database migrations will be managed.
 - [ ] Verify same-origin checks for state-changing API requests behind the production reverse proxy; configure trusted proxy behavior correctly.
 - [ ] Decide whether to add a synchronizer-token or double-submit-token CSRF mechanism for the final deployment.
