@@ -37,6 +37,8 @@ const today = () => new Intl.DateTimeFormat("en-CA", {
 }).format(new Date());
 
 const monthOf = d => d.slice(0, 7);
+const percentClass = (value, max) =>
+    Math.min(100, Math.max(0, Math.round((value / max) * 100)));
 
 /* Set current month */
 
@@ -122,7 +124,7 @@ function renderCategories(list) {
                 <div>
                     <b>${esc(x.category)}</b>
                     <div class="track">
-                        <div class="fill" style="width:${x.total / max * 100}%"></div>
+                        <div class="fill width-${percentClass(x.total, max)}"></div>
                     </div>
                 </div>
                 <small>${money(x.total)}</small>
@@ -167,12 +169,10 @@ function renderChart() {
     $("chart").innerHTML = arr.map(x => `
         <div class="monthbar">
             <div class="barset">
-                <div class="bar incbar"
-                    style="height:${x.inc / max * 100}%"
+                <div class="bar incbar height-${percentClass(x.inc, max)}"
                     title="${money(x.inc)}"></div>
 
-                <div class="bar expbar"
-                    style="height:${x.exp / max * 100}%"
+                <div class="bar expbar height-${percentClass(x.exp, max)}"
                     title="${money(x.exp)}"></div>
             </div>
             <small>${x.label}</small>
