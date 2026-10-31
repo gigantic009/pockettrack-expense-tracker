@@ -16,6 +16,10 @@ let baseUrl;
 
 async function request(route, options = {}) {
   const headers = { ...(options.headers || {}) };
+  const method = String(options.method || "GET").toUpperCase();
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method) && !("origin" in headers)) {
+    headers.origin = baseUrl;
+  }
   if (options.cookie) headers.cookie = options.cookie;
   if (options.body !== undefined) headers["content-type"] = "application/json";
 
@@ -58,14 +62,43 @@ test("PocketTrack API integration", async t => {
     assert.equal(response.status, 401);
   });
 
-  await t.test("registration creates an account, session, and default categories", async () => {
-    const response = await request("/api/auth/register", {
+  await t.test("state-changing API requests reject missing and foreign origins", async () => {
+    const missingOrigin = await request("/api/auth/register", {
+      method: "POST",
+      headers: { origin: "" },
+      body: { name: "Blocked User", email: "blocked@example.com", password: "password123" }
+    });
+    assert.equal(missingOrigin.status, 403);
+
+    const foreignOrigin = await request("/api/auth/register", {
+      method: "POST",
+      headers: { origin: "https://attacker.example" },
+      body: { name: "Blocked User", email: "blocked@example.com", password: "password123" }
+    });
+    assert.equal(foreignOrigin.status, 403);
+
+    const safe = await request("/api/auth/register", {
       method: "POST",
       body: { name: "Test User A", email: "usera@example.com", password: "password123" }
     });
+    assert.equal(safe.status, 201);
+    const cookie = sessionCookie(safe);
+    const blockedDelete = await request("/api/transactions/999", {
+      method: "DELETE",
+      cookie,
+      headers: { origin: "https://attacker.example" }
+    });
+    assert.equal(blockedDelete.status, 403);
+  });
+
+  await t.test("registration creates an account, session, and default categories", async () => {
+    const response = await request("/api/auth/login", {
+      method: "POST",
+      body: { email: "usera@example.com", password: "password123" }
+    });
     const data = await response.json();
 
-    assert.equal(response.status, 201);
+    assert.equal(response.status, 200);
     assert.equal(data.user.email, "usera@example.com");
     assert.equal(data.user.name, "Test User A");
     assert.equal("password_hash" in data.user, false);
