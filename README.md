@@ -93,7 +93,7 @@ The server verifies the session cookie and derives the user ID from the verified
 
 6. Open [http://localhost:3000](http://localhost:3000).
 
-Run the automated tests and syntax checks:
+Create and verify a timestamped SQLite backup (keeps the latest seven backups):\n\n```bash\nnpm run backup\n```\n\nBackups are written to `backups/` and should be copied to separate, secure storage for disaster recovery. The script uses SQLite's backup API, verifies the resulting database, and only then removes older timestamped backups. It does not replace an off-site backup strategy.\n\nRun the automated tests and syntax checks:
 
 ```bash
 npm test
