@@ -201,3 +201,8 @@ SQLite is convenient for local development and a small single-server deployment 
 ## License
 
 No license has been added yet. Unless a license is added, the repository should be treated as having no explicit open-source reuse permission.
+
+
+### Content Security Policy
+
+The frontend JavaScript and CSS are served as external same-origin assets. Helmet applies a Content Security Policy that restricts scripts to the same origin, blocks plugins/objects, prevents framing, and limits form submissions and network connections to the same origin. A temporary `'unsafe-inline'` exception remains for styles because the dashboard currently uses a small number of dynamic inline style attributes; inline scripts and HTML event-handler attributes are not permitted. Removing that style exception is a future hardening task.
