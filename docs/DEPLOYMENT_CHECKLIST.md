@@ -15,7 +15,10 @@ PocketTrack currently runs as a local Node.js + Express application using SQLite
 - [ ] Decide whether to add a synchronizer-token or double-submit-token CSRF mechanism for the final deployment.
 - [ ] Review Content Security Policy before enabling it; the current Helmet configuration disables CSP.
 - [ ] Plan account recovery and a process for handling forgotten passwords.
-- [ ] Review logging, monitoring, rate limits, and operational alerts.
+- [ ] Confirm login (10 per 15 minutes) and registration (5 per hour) rate limits suit the production traffic and shared-IP environment.
+- [ ] Configure a trusted proxy only when required by the host, and verify client IP handling so rate limits cannot be bypassed.
+- [ ] Migrate inline scripts, event handlers, and styles before enabling a restrictive Content Security Policy.
+- [ ] Review logging, monitoring, and operational alerts.
 - [ ] Perform security testing before storing real financial information.
 
 ## SQLite hosting requirements
