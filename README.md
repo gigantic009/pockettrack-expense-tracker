@@ -93,14 +93,14 @@ The server verifies the session cookie and derives the user ID from the verified
 
 6. Open [http://localhost:3000](http://localhost:3000).
 
-Run the automated validation tests and syntax checks:
+Run the automated tests and syntax checks:
 
 ```bash
 npm test
 npm run check
 ```
 
-The test suite uses Node.js's built-in test runner and covers date, amount, description, and transaction-type validation. It does not replace full API integration or browser end-to-end tests.
+The Node.js built-in test suite covers shared input-validation helpers and API integration flows, including registration, login, session handling, categories, transaction CRUD, monthly summaries, and cross-account data isolation. The API integration tests use a temporary SQLite database so they do not modify the developer's local financial data. These tests do not replace browser-based end-to-end testing or an independent security audit.
 
 For development with Node's watch mode:
 
@@ -161,7 +161,7 @@ The following checks were performed during local development:
 - Basic local response-time and concurrent-request checks.
 - Responsive layout checks at mobile, tablet, and desktop widths.
 
-These are development checks, not a formal automated test suite or independent security audit.
+These manual checks complement the automated validation and API integration tests. They are not a formal independent security audit.
 
 ## Security notes and limitations
 
