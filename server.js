@@ -37,7 +37,23 @@ db.exec(
 );
 
 // Middleware
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      // Existing visualizations still set a few dynamic inline style attributes.
+      // Keep this temporary exception limited to styles while blocking inline scripts.
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      frameAncestors: ["'none'"],
+      formAction: ["'self'"]
+    }
+  }
+}));
 app.use(express.json({ limit: "20kb" }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
