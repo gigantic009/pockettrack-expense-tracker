@@ -208,6 +208,17 @@ test("PocketTrack API integration", async t => {
       body: { description: "Groceries", amount: 200, type: "expense", category: "Food", date: today }
     });
     assert.equal(expense.status, 201);
+
+    const overspend = await request("/api/transactions", {
+      method: "POST",
+      cookie: userACookie,
+      body: { description: "Overspending attempt", amount: 801, type: "expense", category: "Shopping", date: today }
+    });
+    assert.equal(overspend.status, 400);
+    assert.match((await overspend.json()).error, /Insufficient balance/i);
+
+    const afterOverspend = await request("/api/transactions", { cookie: userACookie });
+    assert.equal((await afterOverspend.json()).transactions.length, 2);
   });
 
   await t.test("transaction listing, month filtering, and dashboard summary work", async () => {
@@ -246,6 +257,21 @@ test("PocketTrack API integration", async t => {
     const summary = await summaryResponse.json();
     assert.equal(summary.balance, 1000);
     assert.equal(summary.income, 1200);
+
+    const expense = (await (await request("/api/transactions", { cookie: userACookie })).json())
+      .transactions.find(item => item.description === "Groceries");
+    assert.ok(expense);
+
+    const overspendEdit = await request(`/api/transactions/${expense.id}`, {
+      method: "PUT",
+      cookie: userACookie,
+      body: { description: "Oversized groceries", amount: 1201, type: "expense", category: "Food", date: today }
+    });
+    assert.equal(overspendEdit.status, 400);
+    assert.match((await overspendEdit.json()).error, /Insufficient balance/i);
+
+    const afterRejectedEdit = await request("/api/transactions", { cookie: userACookie });
+    assert.equal((await afterRejectedEdit.json()).transactions.length, 2);
   });
 
   await t.test("a second account cannot read or modify the first account's transactions", async () => {
