@@ -11,7 +11,8 @@ PocketTrack currently runs as a local Node.js + Express application using SQLite
 - [ ] Confirm HTTPS is enabled and the app is served only over HTTPS.
 - [ ] Configure automated database backups and test restoring one.
 - [ ] Decide how schema changes and database migrations will be managed.
-- [ ] Review CSRF protection for the chosen hosting and cookie setup.
+- [ ] Verify same-origin checks for state-changing API requests behind the production reverse proxy; configure trusted proxy behavior correctly.
+- [ ] Decide whether to add a synchronizer-token or double-submit-token CSRF mechanism for the final deployment.
 - [ ] Review Content Security Policy before enabling it; the current Helmet configuration disables CSP.
 - [ ] Plan account recovery and a process for handling forgotten passwords.
 - [ ] Review logging, monitoring, rate limits, and operational alerts.
