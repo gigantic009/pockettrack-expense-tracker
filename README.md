@@ -171,10 +171,11 @@ PocketTrack includes several baseline safeguards:
 - Session tokens are signed and stored in HttpOnly, SameSite cookies.
 - The session cookie uses the Secure flag when `NODE_ENV=production`.
 - Login and registration routes are rate-limited.
+- State-changing API requests require a matching same-origin Origin header and reject cross-site Fetch Metadata.
 - Database operations use parameterized queries and user-scoped ownership checks.
 - Helmet supplies common HTTP security headers.
 
-**Before exposing the application publicly**, review the full deployment security model. In particular, configure HTTPS and a private production secret, reliable database backups, a suitable CSRF strategy, account recovery, monitoring, and security testing. The current app does not include a formal CSRF-token flow, and its JWT sessions are not centrally revocable before expiry. Content Security Policy is currently disabled in the Helmet configuration. Do not use this project as a production financial service without further engineering and review.
+**Before exposing the application publicly**, review the full deployment security model. In particular, configure HTTPS and a private production secret, reliable database backups, a suitable CSRF strategy, account recovery, monitoring, and security testing. The current app uses same-origin request checks as a CSRF mitigation, but does not implement a synchronizer-token or double-submit-token flow. Its JWT sessions are not centrally revocable before expiry. Content Security Policy is currently disabled in the Helmet configuration. Do not use this project as a production financial service without further engineering and review.
 
 SQLite is convenient for local development and a small single-server deployment with persistent disk storage. A hosted environment must provide persistent storage and a tested backup/restore process; for a larger multi-instance deployment, consider a server database such as PostgreSQL.
 
