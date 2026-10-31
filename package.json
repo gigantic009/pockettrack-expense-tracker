@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test",
-    "check": "node --check server.js && node --check lib/validation.js"
+    "check": "node --check server.js && node --check lib/validation.js && node --check test/validation.test.js && node --check test/api.integration.test.js"
   },
   "engines": {
     "node": ">=20"
