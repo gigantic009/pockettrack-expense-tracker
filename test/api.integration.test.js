@@ -61,6 +61,12 @@ test("PocketTrack API integration", async t => {
     assert.match(policy, /object-src 'none'/);
     assert.match(policy, /frame-ancestors 'none'/);
     assert.doesNotMatch(policy, /script-src[^;]*unsafe-inline/);
+    assert.match(policy, /style-src 'self'/);
+    assert.match(policy, /style-src-attr 'none'/);
+    assert.doesNotMatch(policy, /style-src[^;]*unsafe-inline/);
+
+    const htmlText = await page.text();
+    assert.doesNotMatch(htmlText, /\\sstyle=/i);
 
     const script = await request("/app.js");
     assert.equal(script.status, 200);
@@ -68,6 +74,9 @@ test("PocketTrack API integration", async t => {
     const stylesheet = await request("/styles.css");
     assert.equal(stylesheet.status, 200);
     assert.match(stylesheet.headers.get("content-type") || "", /css/i);
+    const cssText = await stylesheet.text();
+    assert.match(cssText, /\\.fill\\.width-100/);
+    assert.match(cssText, /\\.bar\\.height-100/);
   });
 
   const today = todayInIndia();
