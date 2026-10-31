@@ -13,11 +13,11 @@ PocketTrack currently runs as a local Node.js + Express application using SQLite
 - [ ] Decide how schema changes and database migrations will be managed.
 - [ ] Verify same-origin checks for state-changing API requests behind the production reverse proxy; configure trusted proxy behavior correctly.
 - [ ] Decide whether to add a synchronizer-token or double-submit-token CSRF mechanism for the final deployment.
-- [ ] Review Content Security Policy before enabling it; the current Helmet configuration disables CSP.
+- [ ] Verify the Helmet Content Security Policy in production, including same-origin scripts/styles and blocked inline style attributes.
 - [ ] Plan account recovery and a process for handling forgotten passwords.
 - [ ] Confirm login (10 per 15 minutes) and registration (5 per hour) rate limits suit the production traffic and shared-IP environment.
 - [ ] Configure a trusted proxy only when required by the host, and verify client IP handling so rate limits cannot be bypassed.
-- [ ] Migrate inline scripts, event handlers, and styles before enabling a restrictive Content Security Policy.
+- [ ] Keep scripts and styles external and avoid adding inline script, event-handler, or style attributes.
 - [ ] Review logging, monitoring, and operational alerts.
 - [ ] Perform security testing before storing real financial information.
 
@@ -47,4 +47,4 @@ PocketTrack is a learning and portfolio project. Do not present it as an audited
 
 - [ ] Confirm the Content Security Policy response header is present in production.
 - [ ] Keep frontend JavaScript external; do not add inline scripts or HTML event-handler attributes.
-- [ ] Remove the temporary `style-src 'unsafe-inline'` exception after migrating dynamic style attributes to CSS classes or safe CSS custom-property updates.
+- [ ] Verify the response includes `style-src-attr 'none'` and does not include any `unsafe-inline` style exception.
