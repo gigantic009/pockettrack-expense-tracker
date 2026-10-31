@@ -91,7 +91,7 @@ test("PocketTrack API integration", async t => {
     assert.equal(blockedDelete.status, 403);
   });
 
-  await t.test("registration creates an account, session, and default categories", async () => {
+  await t.test("a registered account can log in and retrieve its default categories", async () => {
     const response = await request("/api/auth/login", {
       method: "POST",
       body: { email: "usera@example.com", password: "password123" }
