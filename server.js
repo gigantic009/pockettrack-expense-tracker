@@ -81,11 +81,20 @@ function sameOriginApiGuard(req, res, next) {
 
 app.use("/api", sameOriginApiGuard);
 
-const authLimiter = rateLimit({
+const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 30,
+  limit: 10,
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  message: { error: "Too many login attempts. Please try again later." }
+});
+
+const registrationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many registration attempts. Please try again later." }
 });
 
 const cookieOptions = {
@@ -120,7 +129,11 @@ function auth(req, res, next) {
   }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    const payload = jwt.verify(token, JWT_SECRET, {
+      algorithms: ["HS256"],
+      issuer: "pockettrack",
+      audience: "pockettrack-web"
+    });
 
     const user = db
       .prepare("SELECT id, name, email FROM users WHERE id = ?")
@@ -186,14 +199,19 @@ function issueSession(user, res) {
   const token = jwt.sign(
     { userId: user.id },
     JWT_SECRET,
-    { expiresIn: "7d" }
+    {
+      algorithm: "HS256",
+      expiresIn: "7d",
+      issuer: "pockettrack",
+      audience: "pockettrack-web"
+    }
   );
 
   res.cookie("pt_session", token, cookieOptions);
 }
 
 // REGISTER
-app.post("/api/auth/register", authLimiter, (req, res) => {
+app.post("/api/auth/register", registrationLimiter, (req, res) => {
   const name = String(req.body.name || "").trim();
   const email = String(req.body.email || "").trim().toLowerCase();
   const password = String(req.body.password || "");
@@ -255,7 +273,7 @@ app.post("/api/auth/register", authLimiter, (req, res) => {
 });
 
 // LOGIN
-app.post("/api/auth/login", authLimiter, (req, res) => {
+app.post("/api/auth/login", loginLimiter, (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
   const password = String(req.body.password || "");
 
