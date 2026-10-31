@@ -43,3 +43,8 @@ Do not run multiple application instances against a local SQLite file on ordinar
 ## Important
 
 PocketTrack is a learning and portfolio project. Do not present it as an audited financial product or store sensitive real-world financial data in a public deployment until the checklist has been addressed and the application has received an appropriate security review.
+
+
+- [ ] Confirm the Content Security Policy response header is present in production.
+- [ ] Keep frontend JavaScript external; do not add inline scripts or HTML event-handler attributes.
+- [ ] Remove the temporary `style-src 'unsafe-inline'` exception after migrating dynamic style attributes to CSS classes or safe CSS custom-property updates.
