@@ -42,6 +42,45 @@ app.use(express.json({ limit: "20kb" }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+// Reject cross-origin state-changing API requests to reduce cookie-based CSRF risk.
+function sameOriginApiGuard(req, res, next) {
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
+    return next();
+  }
+
+  const origin = req.get("origin");
+  const fetchSite = req.get("sec-fetch-site");
+
+  if (fetchSite === "cross-site" || !origin) {
+    return res.status(403).json({
+      error: "Cross-origin or origin-less requests are not allowed."
+    });
+  }
+
+  try {
+    const parsedOrigin = new URL(origin);
+    const requestHost = req.get("host");
+
+    if (
+      parsedOrigin.origin === "null" ||
+      parsedOrigin.host !== requestHost ||
+      parsedOrigin.protocol !== (req.secure ? "https:" : "http:")
+    ) {
+      return res.status(403).json({
+        error: "Request origin is not allowed."
+      });
+    }
+  } catch {
+    return res.status(403).json({
+      error: "Invalid request origin."
+    });
+  }
+
+  next();
+}
+
+app.use("/api", sameOriginApiGuard);
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 30,
