@@ -273,7 +273,7 @@ app.get("/api/categories", auth, (req, res) => {
 app.get("/api/transactions", auth, (req, res) => {
   const month = String(req.query.month || "");
 
-  if (month && !/^\d{4}-\d{2}$/.test(month)) {
+  if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
     return res.status(400).json({
       error: "Invalid month."
     });
@@ -475,7 +475,7 @@ app.delete("/api/transactions/:id", auth, (req, res) => {
 app.get("/api/summary", auth, (req, res) => {
   const month = String(req.query.month || "");
 
-  if (!/^\d{4}-\d{2}$/.test(month)) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
     return res.status(400).json({
       error: "Invalid month."
     });
