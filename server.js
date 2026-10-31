@@ -42,9 +42,8 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
-      // Existing visualizations still set a few dynamic inline style attributes.
-      // Keep this temporary exception limited to styles while blocking inline scripts.
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'"],
+      styleSrcAttr: ["'none'"],
       imgSrc: ["'self'", "data:"],
       connectSrc: ["'self'"],
       objectSrc: ["'none'"],
