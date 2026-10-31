@@ -64,7 +64,7 @@ Only include these bullets if you can explain the implementation yourself. Adjus
 
 ## Automated validation tests
 
-The repository includes a Node.js built-in test suite for India-time date validation, impossible dates and leap years, future-date rejection, positive amount bounds, description length, and allowed transaction types. Run it with `npm test`; run syntax checks with `npm run check`. These tests cover shared validation helpers, not the entire API or browser UI.
+The repository includes Node.js built-in tests for India-time date validation, impossible dates and leap years, future-date rejection, positive amount bounds, description length, and allowed transaction types. An API integration suite exercises registration, login, session cookies, default categories, transaction creation/editing/deletion, monthly filtering and summaries, and cross-account ownership checks using a temporary SQLite database. Run the suite with `npm test`; run syntax checks with `npm run check`. These tests do not cover browser automation or replace an independent security audit.
 
 ## Interview explanation (about 60 seconds)
 
