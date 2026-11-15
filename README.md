@@ -1,45 +1,41 @@
-# PocketTrack — Personal Expense Tracker
+# PocketTrack — Personal Finance & Expense Tracker
 
-PocketTrack is a full-stack, multi-user expense tracker built with **Node.js, Express, SQLite, and vanilla JavaScript**. It helps users record income and expenses, review monthly cash flow, and keep each account's financial records private from other accounts.
+[![CI](https://github.com/gigantic009/pockettrack-expense-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/gigantic009/pockettrack-expense-tracker/actions/workflows/ci.yml)
+![Node.js 20+](https://img.shields.io/badge/Node.js-20%2B-43853D?logo=node.js&logoColor=white)
+![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white)
+![License](https://img.shields.io/badge/License-Not%20specified-lightgrey)
 
-> **Project status:** Working local application. The app has been manually tested during development. It is a learning and portfolio project, not an audited financial product. Public deployment is not configured.
+PocketTrack is a full-stack, multi-user personal finance application built with **Node.js, Express, SQLite, and vanilla JavaScript**. It helps users record income and expenses, understand monthly cash flow, and keep each account's financial records private from other accounts.
 
-## Features
+> **Status:** Local application and portfolio project. Public deployment is not configured. This is not an audited financial product.
 
-- **Account registration and login** with bcrypt password hashing.
-- **Private user data:** each account can access only its own transactions and categories.
-- **Income and expense tracking** with descriptions, amounts, dates, and categories.
-- **Transaction management:** add, edit, delete, search, and filter transactions.
-- **Monthly dashboard:** monthly income, expenses, savings rate, category breakdown, and cash-flow chart.
-- **All-time balance** alongside month-specific summaries.
-- **Input validation** for amounts, descriptions, categories, and transaction dates. Future dates are rejected using India Standard Time.
-- **Responsive interface** for desktop, tablet, and mobile screens.
+## Highlights
+
+- 🔐 **Account security:** registration, login, bcrypt password hashing, signed sessions, and HttpOnly cookies.
+- 👤 **Account isolation:** users can access only their own transactions and categories.
+- 💸 **Income and expense tracking:** create, edit, delete, search, and filter records.
+- 📊 **Financial overview:** all-time balance, monthly income, expenses, and savings rate.
+- 🧭 **Spending insights:** category-wise expense breakdown and six-month cash-flow chart.
+- 🇮🇳 **India-aware defaults:** INR currency formatting and India Standard Time date validation.
+- 📱 **Responsive interface:** layouts for desktop, tablet, and mobile.
+- 💾 **Database backups:** verified SQLite backups with a seven-backup retention policy.
+- 🧪 **Automated checks:** validation, API integration, and backup tests.
+
+## Screens and experience
+
+The dashboard brings together account-level balance, month-specific financial summaries, spending categories, cash flow, and a searchable transaction table. The interface is built with plain HTML, CSS, and JavaScript; no frontend framework is required.
 
 ## Technology
 
 | Layer | Technology |
 |---|---|
-| Frontend | HTML, CSS, vanilla JavaScript |
-| Backend | Node.js, Express |
-| Database | SQLite with better-sqlite3 |
+| Frontend | HTML5, CSS3, vanilla JavaScript |
+| Backend | Node.js 20+, Express |
+| Database | SQLite, better-sqlite3 |
 | Authentication | bcryptjs, JSON Web Tokens, HttpOnly cookies |
-| Security middleware | Helmet, express-rate-limit, cookie-parser |
+| Security | Helmet, express-rate-limit, same-origin request checks |
+| Testing | Node.js built-in test runner |
 | Configuration | dotenv |
-
-## Application architecture
-
-```mermaid
-flowchart TD
-    A[Browser: HTML, CSS, JavaScript] -->|HTTP / JSON + session cookie| B[Express server]
-    B --> C[Authentication and validation middleware]
-    C --> D[API routes]
-    D --> E[SQLite database]
-    E --> F[Users]
-    E --> G[User-owned categories]
-    E --> H[User-owned transactions]
-```
-
-The server verifies the session cookie and derives the user ID from the verified token. Transaction and category queries are scoped to that authenticated user; the browser does not choose the owner ID.
 
 ## Run locally
 
@@ -47,90 +43,51 @@ The server verifies the session cookie and derives the user ID from the verified
 
 - Node.js 20 or newer
 - npm
-- Git (optional, for cloning the repository)
 
-### Setup
-
-1. Clone the repository and enter the project directory:
-
-   ```bash
-   git clone https://github.com/gigantic009/pockettrack-expense-tracker.git
-   cd pockettrack-expense-tracker
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-   If your npm installation blocks the native build script for `better-sqlite3`, review and approve that package's install script, then rebuild it:
-
-   ```bash
-   npm install-scripts approve better-sqlite3
-   npm rebuild better-sqlite3
-   ```
-
-3. Create your local environment file:
-
-   **Windows CMD**
-   ```cmd
-   copy .env.example .env
-   ```
-
-   **macOS / Linux**
-   ```bash
-   cp .env.example .env
-   ```
-
-4. Edit `.env` and set a private, randomly generated `JWT_SECRET` of at least 32 characters. Keep this value secret and do not commit `.env`.
-
-5. Start the server:
-
-   ```bash
-   npm start
-   ```
-
-6. Open [http://localhost:3000](http://localhost:3000).
-
-Create and verify a timestamped SQLite backup (keeps the latest seven backups):
+### Installation
 
 ```bash
-npm run backup
+git clone https://github.com/gigantic009/pockettrack-expense-tracker.git
+cd pockettrack-expense-tracker
+npm ci
 ```
 
-Backups are written to `backups/` and should be copied to separate, secure storage for disaster recovery. The script uses SQLite's backup API, verifies the resulting database, and only then removes older timestamped backups. It does not replace an off-site backup strategy.
+Create the local environment file:
 
-Run the automated tests and syntax checks:
+**Windows CMD**
+```cmd
+copy .env.example .env
+```
+
+**macOS / Linux**
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set `JWT_SECRET` to a private, randomly generated value of at least 32 characters. Never commit `.env`.
+
+Start the application:
 
 ```bash
-npm test
-npm run check
+npm start
 ```
 
-The Node.js built-in test suite covers shared input-validation helpers, API integration flows, and database backup behavior, including backup verification, seven-file retention, missing-database handling, and corrupt-database failure handling. The API integration tests use a temporary SQLite database so they do not modify the developer's local financial data. These tests do not replace browser-based end-to-end testing or an independent security audit.
+Open [http://localhost:3000](http://localhost:3000) and create an account.
 
-For development with Node's watch mode:
+### Development and verification
 
 ```bash
 npm run dev
+npm run check
+npm test
+npm run backup
 ```
 
-The application creates the `data` directory and SQLite database automatically on first run. The database is local to the server.
-
-## Environment variables
-
-| Variable | Purpose | Example |
-|---|---|---|
-| `PORT` | Local server port | `3000` |
-| `JWT_SECRET` | Secret used to sign session tokens; use a private random value of 32+ characters | Set privately in `.env` |
-| `NODE_ENV` | Runtime environment; production enables the cookie's Secure flag | `development` |
-
-See [`.env.example`](.env.example) for the variable names and safe placeholders. Never put real secrets in source control.
+The automated API tests use a temporary SQLite database so they do not modify a developer's local financial records. Backup tests cover verification, retention, missing databases, and corrupt-database failure handling.
 
 ## API overview
 
-All protected routes require a valid login session.
+All protected endpoints require a valid login session.
 
 | Method | Endpoint | Purpose |
 |---|---|---|
@@ -143,61 +100,26 @@ All protected routes require a valid login session.
 | POST | `/api/transactions` | Create a transaction |
 | PUT | `/api/transactions/:id` | Update a transaction |
 | DELETE | `/api/transactions/:id` | Delete a transaction |
-| GET | `/api/summary?month=YYYY-MM` | Get dashboard totals for a month |
+| GET | `/api/summary?month=YYYY-MM` | Get monthly dashboard totals |
 
-## Database
-
-The schema is maintained in [`database/schema.sql`](database/schema.sql).
-
-- `users` stores account details and password hashes.
-- `categories` stores categories owned by individual users.
-- `transactions` stores income and expense entries owned by individual users.
-
-SQLite data is stored at `data/pockettrack.sqlite`. The `data/` directory is intentionally excluded from Git so personal financial records are not committed.
-
-## Testing and verification
-
-The following checks were performed during local development:
-
-- Account registration and login, duplicate-email rejection, and incorrect-password rejection.
-- Isolation between two user accounts.
-- Transaction creation, editing, deletion, and balance recalculation.
-- Validation of required descriptions, positive amounts, and valid/non-future dates.
-- Search and month, category, and transaction-type filtering.
-- Dashboard summaries and cash-flow chart values.
-- Protected API behavior when unauthenticated.
-- Basic local response-time and concurrent-request checks.
-- Responsive layout checks at mobile, tablet, and desktop widths.
-
-These manual checks complement the automated validation and API integration tests. They are not a formal independent security audit.
-
-## Security notes and limitations
-
-PocketTrack includes several baseline safeguards:
-
-- Passwords are hashed with bcrypt.
-- Session tokens are signed and stored in HttpOnly, SameSite cookies.
-- The session cookie uses the Secure flag when `NODE_ENV=production`.
-- Login attempts are limited to 10 per 15 minutes per client IP, and registrations to 5 per hour per client IP.
-- JWTs use HS256 with explicit issuer and audience validation in addition to expiry checks.
-- State-changing API requests require a matching same-origin Origin header and reject cross-site Fetch Metadata.
-- Database operations use parameterized queries and user-scoped ownership checks.
-- Helmet supplies common HTTP security headers.
-
-**Before exposing the application publicly**, review the full deployment security model. In particular, configure HTTPS and a private production secret, reliable database backups, a suitable CSRF strategy, account recovery, monitoring, and security testing. The current app uses same-origin request checks as a CSRF mitigation, but does not implement a synchronizer-token or double-submit-token flow. Its JWT sessions are not centrally revocable before expiry. Helmet applies a restrictive Content Security Policy: scripts and styles are same-origin, inline scripts and style attributes are blocked, and framing is disabled. Dynamic chart widths and heights use predefined CSS utility classes. Do not use this project as a production financial service without further engineering and review.
-
-SQLite is convenient for local development and a small single-server deployment with persistent disk storage. A hosted environment must provide persistent storage and a tested backup/restore process; for a larger multi-instance deployment, consider a server database such as PostgreSQL.
-
-## Repository structure
+## Project structure
 
 ```text
 .
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── database/
 │   └── schema.sql
+├── lib/
+│   └── validation.js
 ├── public/
-│   └── index.html
-├── data/                 # Local database; ignored by Git
-├── .env                  # Local secrets; ignored by Git
+│   ├── app.js
+│   ├── index.html
+│   └── styles.css
+├── scripts/
+│   └── backup-database.js
+├── test/
 ├── .env.example
 ├── .gitignore
 ├── package.json
@@ -206,11 +128,26 @@ SQLite is convenient for local development and a small single-server deployment 
 └── README.md
 ```
 
+The SQLite database is stored locally at `data/pockettrack.sqlite`. The `data/` directory and `.env` file are excluded from Git.
+
+## Security and deployment notes
+
+PocketTrack uses password hashing, signed JWT sessions, HttpOnly/SameSite cookies, rate limiting, Helmet security headers, parameterized SQL queries, and user-scoped database access.
+
+Before any public deployment, configure HTTPS, a strong private production secret, persistent storage, off-site backups, account recovery, monitoring, and an independently reviewed CSRF/session strategy. Current JWT sessions are not centrally revocable before expiry. SQLite is suitable for local development and a small single-server deployment with persistent disk; a multi-instance deployment should use a server database such as PostgreSQL.
+
+See [SECURITY.md](SECURITY.md) for vulnerability reporting guidance.
+
+## Roadmap
+
+- [ ] Browser-based end-to-end tests
+- [ ] Custom categories and category management
+- [ ] CSV export and import
+- [ ] Recurring transactions and budgets
+- [ ] Multi-currency support with explicit exchange-rate handling
+- [ ] Accessible charts and richer dashboard interactions
+- [ ] Production deployment with persistent database storage
+
 ## License
 
-No license has been added yet. Unless a license is added, the repository should be treated as having no explicit open-source reuse permission.
-
-
-### Content Security Policy
-
-The frontend JavaScript and CSS are served as external same-origin assets. Helmet applies a Content Security Policy that restricts scripts and styles to the same origin, blocks inline scripts and style attributes, blocks plugins/objects, prevents framing, and limits form submissions and network connections to the same origin. Dynamic chart dimensions use predefined CSS utility classes; no `'unsafe-inline'` exception is required.
+No open-source license has been added. Until one is selected, no explicit permission for reuse, modification, or redistribution is granted.
