@@ -3,6 +3,7 @@ require("dotenv").config?.();
 
 const express = require("express");
 const path = require("path");
+const crypto = require("crypto");
 const fs = require("fs");
 const Database = require("better-sqlite3");
 const bcrypt = require("bcryptjs");
@@ -150,6 +151,14 @@ function auth(req, res, next) {
       audience: "pockettrack-web"
     });
 
+    const session = db.prepare(`
+      SELECT id FROM sessions
+      WHERE id = ? AND user_id = ? AND revoked_at IS NULL AND expires_at > ?
+    `).get(payload.sessionId, payload.userId, new Date().toISOString());
+    if (!session) {
+      return res.status(401).json({ error: "Session has been revoked or expired." });
+    }
+
     const user = db
       .prepare("SELECT id, name, email FROM users WHERE id = ?")
       .get(payload.userId);
@@ -234,8 +243,12 @@ function getAvailableBalance(userId, excludedTransactionId = null) {
 }
 
 function issueSession(user, res) {
+  const sessionId = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + cookieOptions.maxAge).toISOString();
+  db.prepare("INSERT INTO sessions(id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)")
+    .run(sessionId, user.id, new Date().toISOString(), expiresAt);
   const token = jwt.sign(
-    { userId: user.id },
+    { userId: user.id, sessionId },
     JWT_SECRET,
     {
       algorithm: "HS256",
@@ -334,6 +347,18 @@ app.post("/api/auth/login", loginLimiter, (req, res) => {
 
 // LOGOUT
 app.post("/api/auth/logout", (req, res) => {
+  const token = req.cookies.pt_session;
+  if (token) {
+    try {
+      const payload = jwt.verify(token, JWT_SECRET, {
+        algorithms: ["HS256"], issuer: "pockettrack", audience: "pockettrack-web"
+      });
+      if (payload.sessionId) {
+        db.prepare("UPDATE sessions SET revoked_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ? AND revoked_at IS NULL")
+          .run(payload.sessionId, payload.userId);
+      }
+    } catch { /* Clearing the browser cookie remains safe for expired tokens. */ }
+  }
   res.clearCookie("pt_session", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -349,6 +374,35 @@ app.get("/api/auth/me", auth, (req, res) => {
   res.json({
     user: publicUser(req.user)
   });
+});
+
+
+app.get("/api/auth/sessions", auth, (req, res) => {
+  const sessions = db.prepare(`
+    SELECT id, created_at, expires_at FROM sessions
+    WHERE user_id = ? AND revoked_at IS NULL AND expires_at > ?
+    ORDER BY created_at DESC
+  `).all(req.user.id, new Date().toISOString());
+  res.json({ sessions });
+});
+
+app.delete("/api/auth/sessions/:id", auth, (req, res) => {
+  const result = db.prepare(`
+    UPDATE sessions SET revoked_at = CURRENT_TIMESTAMP
+    WHERE id = ? AND user_id = ? AND revoked_at IS NULL
+  `).run(String(req.params.id), req.user.id);
+  if (!result.changes) return res.status(404).json({ error: "Active session not found." });
+  res.json({ ok: true });
+});
+
+app.post("/api/auth/logout-all", auth, (req, res) => {
+  db.prepare("UPDATE sessions SET revoked_at = CURRENT_TIMESTAMP WHERE user_id = ? AND revoked_at IS NULL")
+    .run(req.user.id);
+  res.clearCookie("pt_session", {
+    httpOnly: true, secure: process.env.NODE_ENV === "production",
+    sameSite: "strict", path: "/"
+  });
+  res.json({ ok: true });
 });
 
 // GET CATEGORIES
