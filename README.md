@@ -141,6 +141,14 @@ The remaining production-readiness work is tracked in [docs/PRODUCTION_READINESS
 
 **Important:** these are planned upgrades; the roadmap does not claim that those features are already implemented.
 
+## Product research and engineering references
+
+- [Actual Budget](https://github.com/actualbudget/actual): envelope-style budgeting, clear budget-vs-actual workflows, and import ergonomics.
+- [Firefly III](https://github.com/firefly-iii/firefly-iii): recurring transactions, categories, reports, and API-first finance workflows.
+- [GODMAN](https://github.com/gigantic009/GODMAN): explicit user control, scoped operations, auditable actions, validation, and no silent high-impact automation. This is an engineering-pattern reference; no GODMAN code is copied.
+
+PocketTrack is an independent implementation. Its recurring rules are intentionally user-triggered rather than silently posting money movements in the background.
+
 ## License
 
 No open-source license has been added. Until one is selected, no explicit permission for reuse, modification, or redistribution is granted.
