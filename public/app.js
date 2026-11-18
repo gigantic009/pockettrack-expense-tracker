@@ -109,7 +109,143 @@ async function load() {
     renderRows();
     renderChart();
     fillCategoryFilter();
+    await loadFinanceTools();
 }
+
+
+let pendingCsvText = null;
+
+async function loadFinanceTools() {
+  const month = $("monthPicker").value;
+  const [budgetData, recurringData] = await Promise.all([
+    api("/api/budgets?month=" + month),
+    api("/api/recurring-rules")
+  ]);
+  $("budgetCategory").innerHTML = categories.filter(c => c.type === "expense")
+    .map(c => '<option value="' + esc(c.name) + '">' + esc(c.name) + '</option>').join("");
+  $("recType").value = "expense";
+  fillRecurringCategories();
+  $("budgetList").innerHTML = budgetData.budgets.length
+    ? budgetData.budgets.map(b => '<div class="catrow"><div><b>' + esc(b.category) +
+      '</b><div class="track"><div class="fill width-' + percentClass(b.spent, b.amount) +
+      '"></div></div><small>' + money(b.spent) + ' of ' + money(b.amount) +
+      ' · ' + (b.remaining >= 0 ? money(b.remaining) + ' left' : money(-b.remaining) + ' over') +
+      '</small></div><button class="outline" data-budget-delete="' + b.id + '">Remove</button></div>').join("")
+    : '<div class="empty">No budgets for this month yet.</div>';
+  $("recurringList").innerHTML = recurringData.rules.length
+    ? recurringData.rules.map(r => '<div class="catrow"><div><b>' + esc(r.description) +
+      '</b><div class="sub">' + esc(r.frequency) + ' · ' + esc(r.category) + ' · ' +
+      money(r.amount) + ' · next ' + esc(r.next_run_date) + '</div></div>' +
+      '<button class="outline" data-rec-run="' + r.id + '">Run due</button>' +
+      '<button class="outline" data-rec-delete="' + r.id + '">Delete</button></div>').join("")
+    : '<div class="empty">No recurring rules yet.</div>';
+}
+
+function fillRecurringCategories() {
+  const type = $("recType").value;
+  const list = categories.filter(c => c.type === type);
+  $("recCategory").innerHTML = list.map(c => '<option value="' + esc(c.name) + '">' + esc(c.name) + '</option>').join("");
+}
+
+$("budgetForm").onsubmit = async event => {
+  event.preventDefault();
+  try {
+    await api("/api/budgets", { method: "POST", body: JSON.stringify({
+      category: $("budgetCategory").value,
+      month: $("monthPicker").value,
+      amount: Number($("budgetAmount").value)
+    })});
+    $("budgetAmount").value = "";
+    await loadFinanceTools();
+  } catch (error) { alert(error.message); }
+};
+
+$("budgetList").addEventListener("click", async event => {
+  const button = event.target.closest("[data-budget-delete]");
+  if (!button) return;
+  try {
+    await api("/api/budgets/" + button.dataset.budgetDelete, { method: "DELETE" });
+    await loadFinanceTools();
+  } catch (error) { alert(error.message); }
+});
+
+$("previewCsvBtn").onclick = async () => {
+  const file = $("csvFile").files[0];
+  if (!file) { $("csvPreview").textContent = "Choose a CSV file first."; return; }
+  if (file.size > 1000000) { $("csvPreview").textContent = "CSV must be 1 MB or smaller."; return; }
+  try {
+    pendingCsvText = await file.text();
+    const result = await api("/api/transactions/import/preview", {
+      method: "POST", body: JSON.stringify({ csv: pendingCsvText })
+    });
+    $("csvPreview").textContent = result.validRows + " ready · " +
+      result.duplicateRows + " duplicates · " + result.invalidRows + " invalid. " +
+      (result.errors || []).slice(0, 3).map(e => "Row " + e.row + ": " + e.issues.join(" ")).join(" ");
+    $("importCsvBtn").disabled = result.validRows === 0 || result.invalidRows > 0;
+  } catch (error) {
+    pendingCsvText = null;
+    $("importCsvBtn").disabled = true;
+    $("csvPreview").textContent = error.message;
+  }
+};
+
+$("importCsvBtn").onclick = async () => {
+  if (!pendingCsvText) return;
+  try {
+    const result = await api("/api/transactions/import", {
+      method: "POST", body: JSON.stringify({ csv: pendingCsvText })
+    });
+    $("csvPreview").textContent = "Imported " + result.imported +
+      " transactions; skipped " + result.skippedDuplicates + " duplicates.";
+    pendingCsvText = null;
+    $("importCsvBtn").disabled = true;
+    await refresh();
+  } catch (error) { $("csvPreview").textContent = error.message; }
+};
+
+$("exportCsvBtn").onclick = () => {
+  window.location.href = "/api/transactions/export.csv?month=" + encodeURIComponent($("monthPicker").value);
+};
+
+$("recType").onchange = fillRecurringCategories;
+$("recurringForm").onsubmit = async event => {
+  event.preventDefault();
+  try {
+    await api("/api/recurring-rules", { method: "POST", body: JSON.stringify({
+      description: $("recDescription").value,
+      amount: Number($("recAmount").value),
+      type: $("recType").value,
+      category: $("recCategory").value,
+      frequency: $("recFrequency").value,
+      startDate: $("recStartDate").value,
+      endDate: $("recEndDate").value || null
+    })});
+    $("recurringForm").reset();
+    $("recStartDate").value = today();
+    fillRecurringCategories();
+    await loadFinanceTools();
+  } catch (error) { alert(error.message); }
+};
+
+$("recurringList").addEventListener("click", async event => {
+  const run = event.target.closest("[data-rec-run]");
+  const remove = event.target.closest("[data-rec-delete]");
+  try {
+    if (run) {
+      const result = await api("/api/recurring-rules/" + run.dataset.recRun + "/run", { method: "POST" });
+      alert(result.blockedByBalance
+        ? result.created + " created. The next occurrence is waiting because available balance is insufficient."
+        : result.created + " due transaction(s) created.");
+    } else if (remove) {
+      if (!confirm("Delete this recurring rule? Existing transactions will remain.")) return;
+      await api("/api/recurring-rules/" + remove.dataset.recDelete, { method: "DELETE" });
+    } else return;
+    await refresh();
+  } catch (error) { alert(error.message); }
+});
+
+$("monthPicker").addEventListener("change", () => loadFinanceTools().catch(error => alert(error.message)));
+$("recStartDate").value = today();
 
 /* CATEGORY DISPLAY */
 
