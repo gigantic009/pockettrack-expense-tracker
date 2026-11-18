@@ -691,10 +691,10 @@ app.get("/api/summary", auth, (req, res) => {
 const { parseCsv, serializeTransactions } = require("./lib/csv");
 
 function validMonth(value) {
-  return /^\\d{4}-(0[1-9]|1[0-2])$/.test(String(value || ""));
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(String(value || ""));
 }
 function validIsoDate(value) {
-  return /^\\d{4}-\\d{2}-\\d{2}$/.test(String(value || "")) &&
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || "")) &&
     !Number.isNaN(Date.parse(value + "T00:00:00Z")) &&
     new Date(value + "T00:00:00Z").toISOString().slice(0, 10) === value;
 }
