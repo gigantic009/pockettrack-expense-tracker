@@ -12,6 +12,7 @@ PocketTrack is a full-stack, multi-user personal finance application built with 
 ## Highlights
 
 - 🔐 **Account security:** registration, login, bcrypt password hashing, HttpOnly cookies, server-side session revocation, and per-session logout.
+- 🧾 **Audit history:** account-scoped append-only events for financial changes, imports, budgets, and recurring-rule execution.
 - 👤 **Account isolation:** users can access only their own transactions and categories.
 - 💸 **Income and expense tracking:** create, edit, delete, search, and filter records.
 - 📊 **Financial overview:** all-time balance, monthly income, expenses, and savings rate.
@@ -92,6 +93,7 @@ All protected endpoints require a valid login session.
 | GET | `/api/auth/sessions` | List active sessions |
 | DELETE | `/api/auth/sessions/:id` | Revoke one session |
 | POST | `/api/auth/logout-all` | Revoke every active session |
+| GET | `/api/audit` | Read the current account's recent financial activity |
 | GET | `/api/auth/me` | Get the current account |
 | GET | `/api/categories` | List the current user's categories |
 | GET | `/api/transactions` | List transactions; optional `month=YYYY-MM` |
