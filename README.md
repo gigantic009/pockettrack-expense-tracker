@@ -11,7 +11,7 @@ PocketTrack is a full-stack, multi-user personal finance application built with 
 
 ## Highlights
 
-- 🔐 **Account security:** registration, login, bcrypt password hashing, signed sessions, and HttpOnly cookies.
+- 🔐 **Account security:** registration, login, bcrypt password hashing, HttpOnly cookies, server-side session revocation, and per-session logout.
 - 👤 **Account isolation:** users can access only their own transactions and categories.
 - 💸 **Income and expense tracking:** create, edit, delete, search, and filter records.
 - 📊 **Financial overview:** all-time balance, monthly income, expenses, and savings rate.
@@ -19,7 +19,10 @@ PocketTrack is a full-stack, multi-user personal finance application built with 
 - 🇮🇳 **India-aware defaults:** INR currency formatting and India Standard Time date validation.
 - 📱 **Responsive interface:** layouts for desktop, tablet, and mobile.
 - 💾 **Database backups:** verified SQLite backups with a seven-backup retention policy.
-- 🧪 **Automated checks:** validation, API integration, and backup tests.
+- 🧪 **Automated checks:** validation, API integration, backup, CSV safety, budget, and recurring-rule tests.
+- 📥 **CSV workflows:** preview-before-import, row validation, duplicate skipping, and formula-safe export.
+- 🎯 **Monthly budgets:** category limits with actual spend, remaining amount, and usage percentage.
+- 🔁 **Recurring rules:** weekly/monthly rules that create due entries only when the user explicitly runs them; duplicate occurrences are prevented.
 
 ## Technology
 
@@ -85,7 +88,10 @@ All protected endpoints require a valid login session.
 |---|---|---|
 | POST | `/api/auth/register` | Create an account |
 | POST | `/api/auth/login` | Sign in |
-| POST | `/api/auth/logout` | Sign out |
+| POST | `/api/auth/logout` | Revoke current session and sign out |
+| GET | `/api/auth/sessions` | List active sessions |
+| DELETE | `/api/auth/sessions/:id` | Revoke one session |
+| POST | `/api/auth/logout-all` | Revoke every active session |
 | GET | `/api/auth/me` | Get the current account |
 | GET | `/api/categories` | List the current user's categories |
 | GET | `/api/transactions` | List transactions; optional `month=YYYY-MM` |
@@ -93,6 +99,14 @@ All protected endpoints require a valid login session.
 | PUT | `/api/transactions/:id` | Update a transaction |
 | DELETE | `/api/transactions/:id` | Delete a transaction |
 | GET | `/api/summary?month=YYYY-MM` | Get monthly dashboard totals |
+| GET | `/api/transactions/export.csv` | Export authenticated user's transactions |
+| POST | `/api/transactions/import/preview` | Validate and preview a CSV import |
+| POST | `/api/transactions/import` | Import valid rows; skip duplicates |
+| GET/POST | `/api/budgets` | List or save monthly category budgets |
+| DELETE | `/api/budgets/:id` | Delete a category budget |
+| GET/POST | `/api/recurring-rules` | List or create recurring rules |
+| DELETE | `/api/recurring-rules/:id` | Delete a recurring rule |
+| POST | `/api/recurring-rules/:id/run` | Create due transactions idempotently |
 
 ## Project structure
 
@@ -117,13 +131,13 @@ The SQLite database is stored locally at `data/pockettrack.sqlite`. The `data/` 
 
 PocketTrack uses password hashing, signed JWT sessions, HttpOnly/SameSite cookies, rate limiting, Helmet security headers, parameterized SQL queries, and user-scoped database access.
 
-Before any public deployment, configure HTTPS, a strong private production secret, persistent storage, off-site backups, account recovery, monitoring, and an independently reviewed CSRF/session strategy. Current JWT sessions are not centrally revocable before expiry. SQLite is suitable for local development and a small single-server deployment with persistent disk; a multi-instance deployment should use a server database such as PostgreSQL.
+Before any public deployment, configure HTTPS, a strong private production secret, persistent storage, off-site backups, account recovery, monitoring, and an independently reviewed CSRF/session strategy. Session revocation is now database-backed, but recovery and multi-device operational controls still need additional hardening. Current JWT sessions are not centrally revocable before expiry. SQLite is suitable for local development and a small single-server deployment with persistent disk; a multi-instance deployment should use a server database such as PostgreSQL.
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting guidance.
 
 ## Upgrade roadmap
 
-The production-readiness plan is tracked in [docs/PRODUCTION_READINESS.md](docs/PRODUCTION_READINESS.md). It covers session revocation and account recovery, safe CSV import/export, recurring transactions, budgets, a PostgreSQL adapter, browser E2E tests, and deployment acceptance criteria.
+The remaining production-readiness work is tracked in [docs/PRODUCTION_READINESS.md](docs/PRODUCTION_READINESS.md). PostgreSQL support, account recovery, browser E2E testing, and deployment acceptance criteria remain future work.
 
 **Important:** these are planned upgrades; the roadmap does not claim that those features are already implemented.
 
