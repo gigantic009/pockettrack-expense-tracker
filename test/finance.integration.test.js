@@ -92,4 +92,12 @@ test("finance workflows are authenticated, scoped, and idempotent", async t => {
   const otherCookie = "pt_session=" + other.headers.get("set-cookie").match(/pt_session=([^;]+)/)[1];
   const otherBudgets = await request("/api/budgets?month=" + month, { cookie: otherCookie });
   assert.equal((await otherBudgets.json()).budgets.length, 0);
+  const ownerAudit = await (await request("/api/audit?limit=50", { cookie })).json();
+  const eventTypes = ownerAudit.events.map(event => event.eventType);
+  assert.ok(eventTypes.includes("transaction.created"));
+  assert.ok(eventTypes.includes("budget.saved"));
+  assert.ok(eventTypes.includes("transactions.imported"));
+  assert.ok(eventTypes.includes("recurring_rule.executed"));
+  const otherAudit = await (await request("/api/audit", { cookie: otherCookie })).json();
+  assert.equal(otherAudit.events.length, 0);
 });
