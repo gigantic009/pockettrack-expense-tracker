@@ -248,7 +248,6 @@ $("recurringList").addEventListener("click", async event => {
   } catch (error) { alert(error.message); }
 });
 
-$("monthPicker").addEventListener("change", () => loadFinanceTools().catch(error => alert(error.message)));
 $("recStartDate").value = today();
 
 /* CATEGORY DISPLAY */
