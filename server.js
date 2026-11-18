@@ -53,7 +53,7 @@ app.use(helmet({
     }
   }
 }));
-app.use(express.json({ limit: "20kb" }));
+app.use(express.json({ limit: "1100kb" }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -854,7 +854,12 @@ app.post("/api/recurring-rules/:id/run", auth, (req, res) => {
     let next = rule.next_run_date;
     let created = 0;
     let iterations = 0;
+    let blockedByBalance = false;
     while (next <= today && (!rule.end_date || next <= rule.end_date) && iterations < 120) {
+      if (rule.type === "expense" && rule.amount > getAvailableBalance(req.user.id)) {
+        blockedByBalance = true;
+        break;
+      }
       const existing = db.prepare("SELECT 1 FROM recurring_occurrences WHERE rule_id = ? AND scheduled_date = ?")
         .get(rule.id, next);
       if (!existing) {
@@ -874,7 +879,7 @@ app.post("/api/recurring-rules/:id/run", auth, (req, res) => {
     const stillActive = !rule.end_date || next <= rule.end_date;
     db.prepare("UPDATE recurring_rules SET next_run_date = ?, active = ? WHERE id = ? AND user_id = ?")
       .run(next, stillActive ? 1 : 0, rule.id, req.user.id);
-    return { created, nextRunDate: next, active: stillActive };
+    return { created, nextRunDate: next, active: stillActive, blockedByBalance };
   });
   res.json(createDue());
 });
