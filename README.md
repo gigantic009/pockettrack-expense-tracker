@@ -21,10 +21,6 @@ PocketTrack is a full-stack, multi-user personal finance application built with 
 - 💾 **Database backups:** verified SQLite backups with a seven-backup retention policy.
 - 🧪 **Automated checks:** validation, API integration, and backup tests.
 
-## Screens and experience
-
-The dashboard brings together account-level balance, month-specific financial summaries, spending categories, cash flow, and a searchable transaction table. The interface is built with plain HTML, CSS, and JavaScript; no frontend framework is required.
-
 ## Technology
 
 | Layer | Technology |
@@ -40,12 +36,10 @@ The dashboard brings together account-level balance, month-specific financial su
 ## Run locally
 
 ### Requirements
-
 - Node.js 20 or newer
 - npm
 
 ### Installation
-
 ```bash
 git clone https://github.com/gigantic009/pockettrack-expense-tracker.git
 cd pockettrack-expense-tracker
@@ -67,7 +61,6 @@ cp .env.example .env
 Edit `.env` and set `JWT_SECRET` to a private, randomly generated value of at least 32 characters. Never commit `.env`.
 
 Start the application:
-
 ```bash
 npm start
 ```
@@ -75,7 +68,6 @@ npm start
 Open [http://localhost:3000](http://localhost:3000) and create an account.
 
 ### Development and verification
-
 ```bash
 npm run dev
 npm run check
@@ -106,26 +98,17 @@ All protected endpoints require a valid login session.
 
 ```text
 .
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── database/
-│   └── schema.sql
-├── lib/
-│   └── validation.js
+├── .github/workflows/
+├── database/schema.sql
+├── docs/
+├── lib/validation.js
 ├── public/
-│   ├── app.js
-│   ├── index.html
-│   └── styles.css
-├── scripts/
-│   └── backup-database.js
+├── scripts/backup-database.js
 ├── test/
 ├── .env.example
-├── .gitignore
 ├── package.json
 ├── package-lock.json
-├── server.js
-└── README.md
+└── server.js
 ```
 
 The SQLite database is stored locally at `data/pockettrack.sqlite`. The `data/` directory and `.env` file are excluded from Git.
@@ -138,15 +121,11 @@ Before any public deployment, configure HTTPS, a strong private production secre
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting guidance.
 
-## Roadmap
+## Upgrade roadmap
 
-- [ ] Browser-based end-to-end tests
-- [ ] Custom categories and category management
-- [ ] CSV export and import
-- [ ] Recurring transactions and budgets
-- [ ] Multi-currency support with explicit exchange-rate handling
-- [ ] Accessible charts and richer dashboard interactions
-- [ ] Production deployment with persistent database storage
+The production-readiness plan is tracked in [docs/PRODUCTION_READINESS.md](docs/PRODUCTION_READINESS.md). It covers session revocation and account recovery, safe CSV import/export, recurring transactions, budgets, a PostgreSQL adapter, browser E2E tests, and deployment acceptance criteria.
+
+**Important:** these are planned upgrades; the roadmap does not claim that those features are already implemented.
 
 ## License
 
