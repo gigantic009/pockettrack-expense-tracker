@@ -10,7 +10,7 @@ PocketTrack is an Express application using SQLite, per-user transaction/categor
 
 ### P0 — Account and data safety
 
-- [ ] Add server-side session records with revocation; rotate session identifiers on login and password changes.
+- [x] Add server-side session records with revocation; login creates a fresh session and logout revokes it. Password-change rotation remains pending.
 - [ ] Add account recovery with single-use, hashed, expiring tokens. Do not reveal whether an email address is registered.
 - [ ] Add password-change flow that revokes every other session.
 - [ ] Redact credentials, cookies, tokens, and financial payloads from logs.
@@ -21,11 +21,11 @@ Acceptance: tests prove revoked sessions fail, users cannot read or mutate anoth
 
 ### P1 — Finance workflows
 
-- [ ] CSV export for the signed-in user's transactions only.
-- [ ] CSV import with a documented header format, strict date/type/amount validation, duplicate handling, a preview/dry-run, and all-or-nothing database transaction semantics.
-- [ ] Protect spreadsheet exports from formula injection by escaping cells beginning with `=`, `+`, `-`, or `@`.
-- [ ] Recurring transaction rules with frequency, start/end dates, next-run tracking, idempotency keys, and a visible review/confirmation step before creating transactions.
-- [ ] Monthly budgets by user-owned category, with actual-vs-budget summaries and validation against negative/invalid limits.
+- [x] CSV export for the signed-in user's transactions only.
+- [x] CSV import with documented headers, strict date/type/amount/category validation, duplicate handling, preview, and transaction-wrapped commit.
+- [x] Protect spreadsheet exports from formula injection by escaping cells beginning with `=`, `+`, `-`, or `@`.
+- [x] Recurring transaction rules with weekly/monthly frequency, start/end dates, next-run tracking, unique scheduled occurrences, and an explicit user-triggered run action.
+- [x] Monthly budgets by user-owned expense category, with actual-vs-budget summaries and positive amount validation.
 
 Acceptance: import/export round-trips supported records; malformed rows are reported without partial writes; recurring jobs cannot create duplicates; every query is scoped by authenticated user ID.
 
@@ -62,3 +62,14 @@ All endpoints must use the existing authentication middleware and scope every da
 ## Delivery rule
 
 Do not mark a checkbox complete until the implementation, automated tests, and documentation are merged. This file is a plan, not evidence that the listed endpoints or features already exist.
+
+
+## Reference products and design decisions
+
+- [Actual Budget](https://github.com/actualbudget/actual): borrow the importance of a clear monthly budget workflow, imports, and predictable user control.
+- [Firefly III](https://github.com/firefly-iii/firefly-iii): borrow the breadth of financial reports, recurring rules, categories, and API-first workflows.
+- [GODMAN](https://github.com/gigantic009/GODMAN): apply the same engineering posture—explicitly scoped operations, no silent background actions for consequential changes, strong validation, and auditability. This is a design reference, not copied code.
+
+## Current implementation boundary
+
+The branch now implements server-side session revocation, session listing/revocation, CSV import preview/commit/export, formula-safe export, monthly category budgets, and explicit-run recurring rules. PostgreSQL support, account recovery, transaction-level audit history, browser E2E tests, and production deployment remain unimplemented. The recurring scheduler is intentionally user-triggered; it does not run unattended.
