@@ -117,9 +117,10 @@ let pendingCsvText = null;
 
 async function loadFinanceTools() {
   const month = $("monthPicker").value;
-  const [budgetData, recurringData] = await Promise.all([
+  const [budgetData, recurringData, auditData] = await Promise.all([
     api("/api/budgets?month=" + month),
-    api("/api/recurring-rules")
+    api("/api/recurring-rules"),
+    api("/api/audit?limit=10")
   ]);
   $("budgetCategory").innerHTML = categories.filter(c => c.type === "expense")
     .map(c => '<option value="' + esc(c.name) + '">' + esc(c.name) + '</option>').join("");
@@ -132,6 +133,9 @@ async function loadFinanceTools() {
       ' · ' + (b.remaining >= 0 ? money(b.remaining) + ' left' : money(-b.remaining) + ' over') +
       '</small></div><button class="outline" data-budget-delete="' + b.id + '">Remove</button></div>').join("")
     : '<div class="empty">No budgets for this month yet.</div>';
+  $("auditList").innerHTML = auditData.events.length
+    ? auditData.events.map(event => '<div class="catrow"><div><b>' + esc(event.eventType.replaceAll("_", " ")) + '</b><div class="sub">' + esc(event.createdAt) + '</div></div></div>').join("")
+    : '<div class="empty">No account activity yet.</div>';
   $("recurringList").innerHTML = recurringData.rules.length
     ? recurringData.rules.map(r => '<div class="catrow"><div><b>' + esc(r.description) +
       '</b><div class="sub">' + esc(r.frequency) + ' · ' + esc(r.category) + ' · ' +
