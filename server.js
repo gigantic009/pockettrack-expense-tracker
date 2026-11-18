@@ -730,14 +730,13 @@ function validIsoDate(value) {
     !Number.isNaN(Date.parse(value + "T00:00:00Z")) &&
     new Date(value + "T00:00:00Z").toISOString().slice(0, 10) === value;
 }
-function advanceDate(value, frequency) {
+function advanceDate(value, frequency, anchorDay = Number(String(value).slice(8, 10))) {
   const date = new Date(value + "T00:00:00Z");
   if (frequency === "weekly") date.setUTCDate(date.getUTCDate() + 7);
   else {
-    const day = date.getUTCDate();
     const target = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1));
     const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
-    target.setUTCDate(Math.min(day, lastDay));
+    target.setUTCDate(Math.min(anchorDay, lastDay));
     return target.toISOString().slice(0, 10);
   }
   return date.toISOString().slice(0, 10);
@@ -970,7 +969,7 @@ app.post("/api/recurring-rules/:id/run", auth, (req, res) => {
         `).run(rule.id, req.user.id, next, tx.lastInsertRowid);
         created += 1;
       }
-      next = advanceDate(next, rule.frequency);
+      next = advanceDate(next, rule.frequency, Number(rule.start_date.slice(8, 10)));
       iterations += 1;
     }
     const stillActive = !rule.end_date || next <= rule.end_date;
@@ -999,4 +998,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, db };
+module.exports = { app, db, advanceDate };
