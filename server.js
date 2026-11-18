@@ -179,6 +179,29 @@ function auth(req, res, next) {
   }
 }
 
+
+function recordAudit(userId, eventType, entityId = null, metadata = {}) {
+  db.prepare(`
+    INSERT INTO audit_events(user_id, event_type, entity_id, metadata_json)
+    VALUES (?, ?, ?, ?)
+  `).run(userId, eventType, entityId === null ? null : String(entityId),
+    JSON.stringify(metadata).slice(0, 4000));
+}
+
+app.get("/api/audit", auth, (req, res) => {
+  const requested = Number(req.query.limit || 50);
+  const limit = Number.isInteger(requested) ? Math.max(1, Math.min(requested, 100)) : 50;
+  const events = db.prepare(`
+    SELECT id, event_type, entity_id, metadata_json, created_at
+    FROM audit_events WHERE user_id = ?
+    ORDER BY id DESC LIMIT ?
+  `).all(req.user.id, limit).map(event => ({
+    id: event.id, eventType: event.event_type, entityId: event.entity_id,
+    metadata: JSON.parse(event.metadata_json), createdAt: event.created_at
+  }));
+  res.json({ events });
+});
+
 // Default categories
 const defaults = {
   expense: [
@@ -533,6 +556,9 @@ app.post("/api/transactions", auth, (req, res) => {
     WHERE id = ? AND user_id = ?
   `).get(result.lastInsertRowid, req.user.id);
 
+  recordAudit(req.user.id, "transaction.created", transaction.id, {
+    type: transaction.type, category: transaction.category, date: transaction.date
+  });
   res.status(201).json({
     transaction
   });
@@ -608,6 +634,9 @@ app.put("/api/transactions/:id", auth, (req, res) => {
     });
   }
 
+  recordAudit(req.user.id, "transaction.updated", id, {
+    type, category: cleanCategory, date
+  });
   res.json({
     ok: true
   });
@@ -615,6 +644,8 @@ app.put("/api/transactions/:id", auth, (req, res) => {
 
 // DELETE TRANSACTION
 app.delete("/api/transactions/:id", auth, (req, res) => {
+  const existing = db.prepare("SELECT type, category, transaction_date AS date FROM transactions WHERE id = ? AND user_id = ?")
+    .get(Number(req.params.id), req.user.id);
   const result = db
     .prepare(
       "DELETE FROM transactions WHERE id = ? AND user_id = ?"
@@ -627,6 +658,7 @@ app.delete("/api/transactions/:id", auth, (req, res) => {
     });
   }
 
+  recordAudit(req.user.id, "transaction.deleted", req.params.id, existing || {});
   res.json({
     ok: true
   });
@@ -797,6 +829,9 @@ app.post("/api/transactions/import", auth, (req, res) => {
       }
     });
     insertRows(result.valid);
+    recordAudit(req.user.id, "transactions.imported", null, {
+      imported: result.valid.length, skippedDuplicates: result.duplicates.length
+    });
     res.status(201).json({
       imported: result.valid.length,
       skippedDuplicates: result.duplicates.length
@@ -843,14 +878,17 @@ app.post("/api/budgets", auth, (req, res) => {
     ON CONFLICT(user_id, category, month)
     DO UPDATE SET amount = excluded.amount, updated_at = CURRENT_TIMESTAMP
   `).run(req.user.id, category, month, amount);
+  recordAudit(req.user.id, "budget.saved", category, { month });
   res.status(201).json({ ok: true });
 });
 
 app.delete("/api/budgets/:id", auth, (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id)) return res.status(400).json({ error: "Invalid budget ID." });
+  const existing = db.prepare("SELECT category, month FROM budgets WHERE id = ? AND user_id = ?").get(id, req.user.id);
   const result = db.prepare("DELETE FROM budgets WHERE id = ? AND user_id = ?").run(id, req.user.id);
   if (!result.changes) return res.status(404).json({ error: "Budget not found." });
+  recordAudit(req.user.id, "budget.deleted", id, existing || {});
   res.json({ ok: true });
 });
 
@@ -886,14 +924,19 @@ app.post("/api/recurring-rules", auth, (req, res) => {
       start_date, next_run_date, end_date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(req.user.id, description, amount, type, category, frequency, startDate, startDate, endDate);
+  recordAudit(req.user.id, "recurring_rule.created", result.lastInsertRowid, {
+    frequency, type, category, startDate
+  });
   res.status(201).json({ id: result.lastInsertRowid });
 });
 
 app.delete("/api/recurring-rules/:id", auth, (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id)) return res.status(400).json({ error: "Invalid rule ID." });
+  const existing = db.prepare("SELECT description, frequency FROM recurring_rules WHERE id = ? AND user_id = ?").get(id, req.user.id);
   const result = db.prepare("DELETE FROM recurring_rules WHERE id = ? AND user_id = ?").run(id, req.user.id);
   if (!result.changes) return res.status(404).json({ error: "Recurring rule not found." });
+  recordAudit(req.user.id, "recurring_rule.deleted", id, existing || {});
   res.json({ ok: true });
 });
 
@@ -935,7 +978,9 @@ app.post("/api/recurring-rules/:id/run", auth, (req, res) => {
       .run(next, stillActive ? 1 : 0, rule.id, req.user.id);
     return { created, nextRunDate: next, active: stillActive, blockedByBalance };
   });
-  res.json(createDue());
+  const result = createDue();
+  recordAudit(req.user.id, "recurring_rule.executed", id, result);
+  res.json(result);
 });
 
 // FRONTEND
