@@ -133,7 +133,7 @@ The SQLite database is stored locally at `data/pockettrack.sqlite`. The `data/` 
 
 PocketTrack uses password hashing, signed JWT sessions, HttpOnly/SameSite cookies, rate limiting, Helmet security headers, parameterized SQL queries, and user-scoped database access.
 
-Before any public deployment, configure HTTPS, a strong private production secret, persistent storage, off-site backups, account recovery, monitoring, and an independently reviewed CSRF/session strategy. Session revocation is now database-backed, but recovery and multi-device operational controls still need additional hardening. Current JWT sessions are not centrally revocable before expiry. SQLite is suitable for local development and a small single-server deployment with persistent disk; a multi-instance deployment should use a server database such as PostgreSQL.
+Before any public deployment, configure HTTPS, a strong private production secret, persistent storage, off-site backups, account recovery, monitoring, and an independently reviewed CSRF/session strategy. Session revocation is database-backed, including revocation of individual sessions and all sessions for an account. SQLite is suitable for local development and a small single-server deployment with persistent disk; a multi-instance deployment should use a server database such as PostgreSQL.
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting guidance and [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md) for the threat model and residual risks.
 
