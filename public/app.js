@@ -660,7 +660,9 @@ $("transactionForm").onsubmit = async e => {
 
 /* FILTERS */
 
-$("monthPicker").onchange = async () => {\n    try { await refresh(); } catch (error) { alert(error.message); }\n};
+$("monthPicker").onchange = async () => {
+    try { await refresh(); } catch (error) { alert(error.message); }
+};
 
 $("search").oninput = renderRows;
 
