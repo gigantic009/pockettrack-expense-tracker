@@ -11,7 +11,8 @@ PocketTrack is a full-stack, multi-user personal finance application built with 
 
 ## Highlights
 
-- 🔐 **Account security:** registration, login, bcrypt password hashing, signed sessions, and HttpOnly cookies.
+- 🔐 **Account security:** registration, login, bcrypt password hashing, HttpOnly cookies, server-side session revocation, and per-session logout.
+- 🧾 **Audit history:** account-scoped append-only events for financial changes, imports, budgets, and recurring-rule execution.
 - 👤 **Account isolation:** users can access only their own transactions and categories.
 - 💸 **Income and expense tracking:** create, edit, delete, search, and filter records.
 - 📊 **Financial overview:** all-time balance, monthly income, expenses, and savings rate.
@@ -19,11 +20,10 @@ PocketTrack is a full-stack, multi-user personal finance application built with 
 - 🇮🇳 **India-aware defaults:** INR currency formatting and India Standard Time date validation.
 - 📱 **Responsive interface:** layouts for desktop, tablet, and mobile.
 - 💾 **Database backups:** verified SQLite backups with a seven-backup retention policy.
-- 🧪 **Automated checks:** validation, API integration, and backup tests.
-
-## Screens and experience
-
-The dashboard brings together account-level balance, month-specific financial summaries, spending categories, cash flow, and a searchable transaction table. The interface is built with plain HTML, CSS, and JavaScript; no frontend framework is required.
+- 🧪 **Automated checks:** validation, API integration, backup, CSV safety, budget, and recurring-rule tests.
+- 📥 **CSV workflows:** preview-before-import, row validation, duplicate skipping, and formula-safe export.
+- 🎯 **Monthly budgets:** category limits with actual spend, remaining amount, and usage percentage.
+- 🔁 **Recurring rules:** weekly/monthly rules that create due entries only when the user explicitly runs them; duplicate occurrences are prevented.
 
 ## Technology
 
@@ -40,12 +40,10 @@ The dashboard brings together account-level balance, month-specific financial su
 ## Run locally
 
 ### Requirements
-
 - Node.js 20 or newer
 - npm
 
 ### Installation
-
 ```bash
 git clone https://github.com/gigantic009/pockettrack-expense-tracker.git
 cd pockettrack-expense-tracker
@@ -67,7 +65,6 @@ cp .env.example .env
 Edit `.env` and set `JWT_SECRET` to a private, randomly generated value of at least 32 characters. Never commit `.env`.
 
 Start the application:
-
 ```bash
 npm start
 ```
@@ -75,7 +72,6 @@ npm start
 Open [http://localhost:3000](http://localhost:3000) and create an account.
 
 ### Development and verification
-
 ```bash
 npm run dev
 npm run check
@@ -93,7 +89,11 @@ All protected endpoints require a valid login session.
 |---|---|---|
 | POST | `/api/auth/register` | Create an account |
 | POST | `/api/auth/login` | Sign in |
-| POST | `/api/auth/logout` | Sign out |
+| POST | `/api/auth/logout` | Revoke current session and sign out |
+| GET | `/api/auth/sessions` | List active sessions |
+| DELETE | `/api/auth/sessions/:id` | Revoke one session |
+| POST | `/api/auth/logout-all` | Revoke every active session |
+| GET | `/api/audit` | Read the current account's recent financial activity |
 | GET | `/api/auth/me` | Get the current account |
 | GET | `/api/categories` | List the current user's categories |
 | GET | `/api/transactions` | List transactions; optional `month=YYYY-MM` |
@@ -101,31 +101,30 @@ All protected endpoints require a valid login session.
 | PUT | `/api/transactions/:id` | Update a transaction |
 | DELETE | `/api/transactions/:id` | Delete a transaction |
 | GET | `/api/summary?month=YYYY-MM` | Get monthly dashboard totals |
+| GET | `/api/transactions/export.csv` | Export authenticated user's transactions |
+| POST | `/api/transactions/import/preview` | Validate and preview a CSV import |
+| POST | `/api/transactions/import` | Import valid rows; skip duplicates |
+| GET/POST | `/api/budgets` | List or save monthly category budgets |
+| DELETE | `/api/budgets/:id` | Delete a category budget |
+| GET/POST | `/api/recurring-rules` | List or create recurring rules |
+| DELETE | `/api/recurring-rules/:id` | Delete a recurring rule |
+| POST | `/api/recurring-rules/:id/run` | Create due transactions idempotently |
 
 ## Project structure
 
 ```text
 .
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── database/
-│   └── schema.sql
-├── lib/
-│   └── validation.js
+├── .github/workflows/
+├── database/schema.sql
+├── docs/
+├── lib/validation.js
 ├── public/
-│   ├── app.js
-│   ├── index.html
-│   └── styles.css
-├── scripts/
-│   └── backup-database.js
+├── scripts/backup-database.js
 ├── test/
 ├── .env.example
-├── .gitignore
 ├── package.json
 ├── package-lock.json
-├── server.js
-└── README.md
+└── server.js
 ```
 
 The SQLite database is stored locally at `data/pockettrack.sqlite`. The `data/` directory and `.env` file are excluded from Git.
@@ -134,19 +133,23 @@ The SQLite database is stored locally at `data/pockettrack.sqlite`. The `data/` 
 
 PocketTrack uses password hashing, signed JWT sessions, HttpOnly/SameSite cookies, rate limiting, Helmet security headers, parameterized SQL queries, and user-scoped database access.
 
-Before any public deployment, configure HTTPS, a strong private production secret, persistent storage, off-site backups, account recovery, monitoring, and an independently reviewed CSRF/session strategy. Current JWT sessions are not centrally revocable before expiry. SQLite is suitable for local development and a small single-server deployment with persistent disk; a multi-instance deployment should use a server database such as PostgreSQL.
+Before any public deployment, configure HTTPS, a strong private production secret, persistent storage, off-site backups, account recovery, monitoring, and an independently reviewed CSRF/session strategy. Session revocation is database-backed, including revocation of individual sessions and all sessions for an account. SQLite is suitable for local development and a small single-server deployment with persistent disk; a multi-instance deployment should use a server database such as PostgreSQL.
 
-See [SECURITY.md](SECURITY.md) for vulnerability reporting guidance.
+See [SECURITY.md](SECURITY.md) for vulnerability reporting guidance and [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md) for the threat model and residual risks.
 
-## Roadmap
+## Upgrade roadmap
 
-- [ ] Browser-based end-to-end tests
-- [ ] Custom categories and category management
-- [ ] CSV export and import
-- [ ] Recurring transactions and budgets
-- [ ] Multi-currency support with explicit exchange-rate handling
-- [ ] Accessible charts and richer dashboard interactions
-- [ ] Production deployment with persistent database storage
+The remaining production-readiness work is tracked in [docs/PRODUCTION_READINESS.md](docs/PRODUCTION_READINESS.md). PostgreSQL support, account recovery, browser E2E testing, and deployment acceptance criteria remain future work.
+
+**Important:** these are planned upgrades; the roadmap does not claim that those features are already implemented.
+
+## Product research and engineering references
+
+- [Actual Budget](https://github.com/actualbudget/actual): envelope-style budgeting, clear budget-vs-actual workflows, and import ergonomics.
+- [Firefly III](https://github.com/firefly-iii/firefly-iii): recurring transactions, categories, reports, and API-first finance workflows.
+- [GODMAN](https://github.com/gigantic009/GODMAN): explicit user control, scoped operations, auditable actions, validation, and no silent high-impact automation. This is an engineering-pattern reference; no GODMAN code is copied.
+
+PocketTrack is an independent implementation. Its recurring rules are intentionally user-triggered rather than silently posting money movements in the background.
 
 ## License
 

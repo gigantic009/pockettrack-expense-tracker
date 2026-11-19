@@ -335,5 +335,7 @@ test("PocketTrack API integration", async t => {
 
     const profile = await request("/api/auth/me");
     assert.equal(profile.status, 401);
+    const replayedCookie = await request("/api/auth/me", { cookie: userACookie });
+    assert.equal(replayedCookie.status, 401);
   });
 });

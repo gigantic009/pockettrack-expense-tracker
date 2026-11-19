@@ -186,6 +186,48 @@
 </div>
 </section>
 
+<section class="grid" id="financeTools">
+<div class="panel">
+<h3>Monthly budgets</h3>
+<p class="sub">Set a spending limit for each expense category.</p>
+<form id="budgetForm">
+<div class="field"><label for="budgetCategory">Expense category</label><select id="budgetCategory" required></select></div>
+<div class="field"><label for="budgetAmount">Monthly limit (₹)</label><input id="budgetAmount" type="number" min="0.01" step="0.01" required></div>
+<button class="primary" type="submit">Save budget</button>
+</form>
+<div id="budgetList" aria-live="polite"></div>
+</div>
+<div class="panel">
+<h3>Import and export</h3>
+<p class="sub">Preview CSV rows before importing. Existing rows are skipped.</p>
+<div class="field"><label for="csvFile">CSV transaction file</label><input id="csvFile" type="file" accept=".csv,text/csv"></div>
+<button class="outline" type="button" id="previewCsvBtn">Preview import</button>
+<button class="primary" type="button" id="importCsvBtn" disabled>Import valid rows</button>
+<button class="outline" type="button" id="exportCsvBtn">Export transactions</button>
+<div id="csvPreview" class="sub" aria-live="polite"></div>
+</div>
+</section>
+<section class="panel" id="recurringPanel">
+<h3>Recurring transactions</h3>
+<p class="sub">Create a rule, then run due entries when you review your finances. Nothing is posted silently in the background.</p>
+<form id="recurringForm" class="formgrid">
+<div class="field"><label for="recDescription">Description</label><input id="recDescription" maxlength="100" required></div>
+<div class="field"><label for="recAmount">Amount (₹)</label><input id="recAmount" type="number" min="0.01" step="0.01" required></div>
+<div class="field"><label for="recType">Type</label><select id="recType"><option value="expense">Expense</option><option value="income">Income</option></select></div>
+<div class="field"><label for="recCategory">Category</label><select id="recCategory" required></select></div>
+<div class="field"><label for="recFrequency">Frequency</label><select id="recFrequency"><option value="monthly">Monthly</option><option value="weekly">Weekly</option></select></div>
+<div class="field"><label for="recStartDate">First due date</label><input id="recStartDate" type="date" required></div>
+<div class="field"><label for="recEndDate">Last due date (optional)</label><input id="recEndDate" type="date"></div>
+<div class="field"><button class="primary" type="submit">Create recurring rule</button></div>
+</form>
+<div id="recurringList" aria-live="polite"></div>
+</section>
+
+<section class="panel" id="auditPanel">
+<h3>Account activity</h3>
+<p class="sub">Recent financial changes made in this account.</p>
+<div id="auditList" aria-live="polite"></div>
+</section>
 </main>
 
 <div class="modalbg" id="modal">
