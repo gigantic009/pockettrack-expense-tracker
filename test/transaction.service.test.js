@@ -8,7 +8,12 @@ function setup(balance = 1000) {
   const repo = {
     list: () => [...rows.values()],
     availableBalance: (_userId, excludedId = null) => {
-      return balance;
+      let value = balance;
+      for (const [id, row] of rows) {
+        if (id === excludedId) continue;
+        value += row.type === "income" ? row.amount : -row.amount;
+      }
+      return value;
     },
     insert: data => { const id = nextId++; rows.set(id, { ...data, id }); return id; },
     update: (id, userId, data) => { if (!rows.has(id) || rows.get(id).userId !== userId) return 0; rows.set(id, { ...data, id }); return 1; },
