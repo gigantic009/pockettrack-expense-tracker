@@ -1,1 +1,22 @@
-# Refactor status\n\nThis branch contains the staged modular architecture for PocketTrack. It is intentionally not yet the default runtime.\n\n## Foundations in place\n- Modular Express application factory and server entrypoint\n- Configuration validation and database initialization\n- Auth, transactions, categories, and dashboard modules\n- SQL repository boundaries and transaction domain service\n- Shared API client, observable state store, and formatting helpers\n- Architecture, API, development, and error-handling documentation\n- Focused transaction-service unit tests\n\n## Verification and remaining migration\n- Run `npm test` and `npm run check` in a Node 20+ environment with dependencies installed.\n- Exercise the modular server against the current SQLite schema and the browser UI.\n- Complete migration of the legacy frontend to the modular API client/state store.\n- Resolve any integration issues found, then switch the default entrypoint in a separately reviewed change.\n- Only remove legacy runtime code after parity tests and backup/restore checks pass.\n\n## Safety principle\nDo not make the modular entrypoint the default or remove the legacy server until the compatibility and integration tests pass.
+# Refactor status
+
+This branch contains the staged modular architecture for PocketTrack. It is intentionally not yet the default runtime.
+
+## Foundations in place
+- Modular Express application factory and server entrypoint
+- Configuration validation and database initialization
+- Auth, transactions, categories, and dashboard modules
+- SQL repository boundaries and transaction domain service
+- Shared API client, observable state store, and formatting helpers
+- Architecture, API, development, and error-handling documentation
+- Focused transaction-service unit tests
+
+## Verification and remaining migration
+- Run `npm test` and `npm run check` in a Node 20+ environment with dependencies installed.
+- Exercise the modular server against the current SQLite schema and the browser UI.
+- Complete migration of the legacy frontend to the modular API client/state store.
+- Resolve any integration issues found, then switch the default entrypoint in a separately reviewed change.
+- Only remove legacy runtime code after parity tests and backup/restore checks pass.
+
+## Safety principle
+Do not make the modular entrypoint the default or remove the legacy server until the compatibility and integration tests pass.
