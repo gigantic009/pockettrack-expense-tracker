@@ -653,7 +653,7 @@ if (require.main === module) {
 // Advance a recurring transaction date using UTC calendar arithmetic.
 // Monthly schedules retain the original requested day, clamped to the month's end.
 function advanceDate(dateString, frequency, originalDay) {
-  const match = /^\\d{4}-\\d{2}-\\d{2}$/.test(String(dateString));
+  const match = /^\d{4}-\d{2}-\d{2}$/.test(String(dateString));
   if (!match) throw new TypeError("Invalid recurring date.");
   const [year, month, day] = dateString.split("-").map(Number);
   const current = new Date(Date.UTC(year, month - 1, day));
