@@ -33,6 +33,7 @@ function createApp({db=createDatabase(),jwtSecret=env.jwtSecret,production=env.i
   app.use("/api/categories",createCategoryRouter({db,jwtSecret}));
   app.use("/api",createDashboardRouter({db,jwtSecret}));
   app.use(express.static(path.join(process.cwd(),"public")));
+  app.use("/api",(req,res)=>res.status(404).json({error:"API endpoint not found."}));
   app.get("*",(req,res)=>res.sendFile(path.join(process.cwd(),"public","index.html")));
   app.use((req,res)=>res.status(404).json({error:"Not found."}));
   app.use(errorHandler);
