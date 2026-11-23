@@ -649,4 +649,28 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, db };
+
+// Advance a recurring transaction date using UTC calendar arithmetic.
+// Monthly schedules retain the original requested day, clamped to the month's end.
+function advanceDate(dateString, frequency, originalDay) {
+  const match = /^\\d{4}-\\d{2}-\\d{2}$/.test(String(dateString));
+  if (!match) throw new TypeError("Invalid recurring date.");
+  const [year, month, day] = dateString.split("-").map(Number);
+  const current = new Date(Date.UTC(year, month - 1, day));
+  if (current.toISOString().slice(0,10) !== dateString) throw new TypeError("Invalid recurring date.");
+  if (frequency === "weekly") {
+    current.setUTCDate(current.getUTCDate() + 7);
+    return current.toISOString().slice(0,10);
+  }
+  if (frequency === "monthly") {
+    const targetDay = Number(originalDay);
+    if (!Number.isInteger(targetDay) || targetDay < 1 || targetDay > 31) throw new TypeError("Invalid recurring day.");
+    const nextMonth = new Date(Date.UTC(year, month, 1));
+    const lastDay = new Date(Date.UTC(nextMonth.getUTCFullYear(), nextMonth.getUTCMonth() + 1, 0)).getUTCDate();
+    nextMonth.setUTCDate(Math.min(targetDay, lastDay));
+    return nextMonth.toISOString().slice(0,10);
+  }
+  throw new TypeError("Unsupported recurring frequency.");
+}
+
+module.exports = { app, db, advanceDate };
