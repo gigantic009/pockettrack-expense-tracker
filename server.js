@@ -12,6 +12,8 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 
 const app = express();
+// Trust Railway's reverse proxy so secure cookies and origin checks see HTTPS.
+app.set("trust proxy", 1);
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
 
