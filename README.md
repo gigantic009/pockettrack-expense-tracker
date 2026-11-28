@@ -7,7 +7,18 @@
 
 PocketTrack is a full-stack, multi-user personal finance application built with **Node.js, Express, SQLite, and vanilla JavaScript**. It helps users record income and expenses, understand monthly cash flow, and keep each account's financial records private from other accounts.
 
-> **Status:** Local application and portfolio project. Public deployment is not configured. This is not an audited financial product.
+> **Status:** Deployed on Railway. This is a portfolio project, not an audited financial product.
+>
+> **Live application:** https://pockettrack-production.up.railway.app
+
+## Deployment
+
+PocketTrack is deployed on Railway:
+
+- **Live application:** https://pockettrack-production.up.railway.app
+- **Hosting:** Railway
+
+The deployed instance uses persistent storage as configured for the deployment. Avoid entering sensitive real financial information into this portfolio demo.
 
 ## Highlights
 
@@ -146,7 +157,9 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting guidance.
 - [ ] Recurring transactions and budgets
 - [ ] Multi-currency support with explicit exchange-rate handling
 - [ ] Accessible charts and richer dashboard interactions
-- [ ] Production deployment with persistent database storage
+- [x] Deployment on Railway
+- [ ] Browser-based end-to-end tests
+- [ ] Custom categories and category management
 
 ## License
 
